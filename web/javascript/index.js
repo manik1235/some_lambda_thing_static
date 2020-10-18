@@ -1,3 +1,5 @@
+import { HandRanker } from './hand_ranker.js';
+
 function main() {
   var dealHandsUrl = "https://8x16jr2jii.execute-api.us-east-1.amazonaws.com/dev/some-lambda-thing?action=dealHands&number=5";
 
@@ -18,24 +20,28 @@ function httpGetAsync(theUrl, callback)
 function dealHands(response) {
   var hands = JSON.parse(response).hands.hands;
   var table = document.getElementById('table');
+  var hand;
   var handElement;
   var id;
 
-  for (handIndex in hands) {
+  for (var handIndex in hands) {
     hand = hands[handIndex];
     handElement = createElement('div', 'id', 'hand_' + handIndex);
 
     handElement.innerText = 'Hand ' + handIndex + ': ';
-    for (cardsIndex in hand) {
+    for (var cardsIndex in hand) {
       handElement.innerText += hand[cardsIndex] + ' ';
     }
+    var handRanker = new HandRanker(hand);
+    console.log('Hand Stats');
+    console.log(handRanker.stats);
     table.append(handElement);
   }
 }
 
 function createElement(tag, attribute, value) {
-  element = document.createElement(tag);
-  id = document.createAttribute(attribute);
+  var element = document.createElement(tag);
+  var id = document.createAttribute(attribute);
   id.value = value;
   element.attributes.setNamedItem(id);
 
