@@ -21,9 +21,6 @@ export class HandRanker {
   }
 
   get _calcRanks() {
-    if (this.cache._calcRanks) {
-      return this.cache._calcRanks;
-    }
     var cardsPerRank = {};
     var ranks = [];
 
@@ -37,14 +34,10 @@ export class HandRanker {
       }
     }
 
-    this.cache._calcRanks = { 'cardsPerRank': cardsPerRank, 'ranks': ranks };
-    return this.cache._calcRanks;
+    return { 'cardsPerRank': cardsPerRank, 'ranks': ranks };
   }
 
   get _calcCardsPerSuit() {
-    if (this.cache._calcRanks) {
-      return this.cache._calcRanks;
-    }
     var cardsPerSuit = {};
 
     for (var cardIndex in this.hand) {
@@ -56,14 +49,10 @@ export class HandRanker {
       }
     }
 
-    this.cache._calcCardsPerSuit = cardsPerSuit;
-    return this.cache._calcCardsPerSuit;
+    return cardsPerSuit;
   }
 
   get _calcRuns() {
-    if (this.cache._calcRuns) {
-      return this.cache._calcRuns;
-    }
     var runs = {};
     var rankOrdered = Array.from(new Set(this._numericRanks(this._calcRanks.ranks)));
     var deltas = [];
@@ -93,8 +82,7 @@ export class HandRanker {
       }
     }
 
-    this.cache._calcRuns = runs;
-    return this.cache._calcRuns;
+    return runs;
   }
 
   _numericRanks(ranks) {
@@ -139,7 +127,7 @@ export class HandRanker {
     var kinds = [];
 
     for (var rankKey in this._calcRanks) {
-      if (this._calcRanks[rankKey] === count) {
+      if (this._calcRanks[rankKey] == count) {
         kinds.push(rankKey);
       }
     }
