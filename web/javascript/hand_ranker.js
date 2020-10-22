@@ -11,13 +11,115 @@ export class HandRanker {
     handStats.length = this.hand.length;
     handStats.cardsPerRank = this._calcRanks.cardsPerRank;
     handStats.ranks = this._calcRanks.ranks;
-    handStats.pairs = this._calcKinds(2);
+    handStats.pairs = this._calcPairs; // this._calcKinds(2);
     handStats.trips = this._calcKinds(3);
     handStats.quads = this._calcKinds(4);
     handStats.cardsPerSuit = this._calcCardsPerSuit;
     handStats.runs = this._calcRuns;
 
+    handStats.hands = this._calcHands;
+
     return handStats;
+  }
+
+  /*
+   *  [
+   *    0: { name: '2c', rank: 2, suit: c },
+   *    1: { name: '4d', rank: 4, suit: d },
+   *  ]
+   */
+  get _calcCards() {
+    var cards = [];
+    var hand = this.hand;
+    var rank, suit;
+
+    for (var cardIndex in hand) {
+      rank = hand[cardIndex].slice(0, 1);
+      suit = hand[cardIndex].slice(1, 2);
+      cards.push({ name: hand[cardIndex], rank: rank, suit: suit });
+    }
+
+    return cards;
+  }
+
+  /*
+   *  pairs: [ // hand = [Th, Tc, 3h, 3c, 3s]
+   *    0: { used: [Th, Tc], unused: [3h, 3c, 3s] },
+   *    1: { used: [3h, 3c], unused: [Th, Tc, 3s] },
+   *    2: { used: [3c, 3s], unused: [Th, Tc, 3h] },
+   *    3: { used: [3s, 3h], unused: [Th, Tc, 3c] }
+   *  ]
+   *
+   *  pairs: [ // hand = [Th, Tc, 3h, 3c, 3s]
+   *    0: { rank: 'T', used: [Th, Tc], unused: [3h, 3c, 3s] },
+   */
+  get _calcPairs() {
+    var pairs = []
+    var cards = this._calcCards;
+    var card, rank, pair, unused;
+
+    for (var cardIndex in cards) {
+      card = cards[cardIndex]
+      rank = card.rank
+
+      for (var i = parseInt(cardIndex) + 1; i < cards.length; i++) {
+        if (rank === cards[i].rank) {
+          unused = cards.filter(c => c.name !== card.name && c.name !== cards[i].name);
+          pair = { rank: rank, used: [card.name, cards[i].name], unused: unused };
+          pairs.push(pair);
+        }
+      }
+    }
+
+    return pairs
+  }
+
+  get _calcHands() {
+    /*
+     *  What should output look like?
+     *  Should I have a Hand class? Is that what this is?
+     *  {
+     *    hands: [  // Ordered from highest to lowest?
+     *      highest: "straghtFlush" // Key name of the highest hand
+     *      straightFlush: { // hand = [Th, Jh, Qh, Kh, Ah]
+     *        cards: [Th, Jh, Qh, Kh, Ah],
+     *      }
+     *      pairs: [ // hand = [Th, Tc, 3h, 3c, Xx]
+     *        0: { used: [Th, Tc], unused: [3h, 3c, Xx] },
+     *        1: { used: [3h, 3c], unused: [Th, Tc, Xx] }
+     *      ]
+     *      pairs: [ // hand = [Th, Tc, 3h, 3c, 3s]
+     *        0: { used: [Th, Tc], unused: [3h, 3c, 3s] },
+     *        1: { used: [3h, 3c], unused: [Th, Tc, 3s] },
+     *        2: { used: [3c, 3s], unused: [Th, Tc, 3h] },
+     *        3: { used: [3s, 3h], unused: [Th, Tc, 3c] }
+     *      ]
+     *      trips: [ // hand = [Th, Tc, 3h, 3c, 3s]
+     *        0: { used: [3h, 3c, 3s], unused: [Th, Tc] }
+     *      ]
+     *    ],
+     *
+     *    draws: [
+     *      insideStraightDraws: [
+     *        0: {
+     *          cards: [Th, Jh, Kh, Ac],
+     *          outs: [Qc, Qd, Qh, Qs] - seenCards,
+     *        },
+     *      ],
+     *      flushDraws: [
+     *        0: {
+     *          cards: [Th, Jh, Kh, 2h],
+     *          outs: [allHearts] - seenCards,
+     *        },
+     *      ],
+     *    ]
+     *  }
+     *
+     *
+     *
+     *
+     *
+     */
   }
 
   get _calcRanks() {
