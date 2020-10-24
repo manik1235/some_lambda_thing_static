@@ -12,7 +12,7 @@ export class HandRanker {
     handStats.cardsPerRank = this._calcRanks.cardsPerRank;
     handStats.ranks = this._calcRanks.ranks;
     handStats.pairs = this._calcPairs; // this._calcKinds(2);
-    handStats.trips = this._calcKinds(3);
+    handStats.trips = this._calcTrips; //this._calcKinds(3);
     handStats.quads = this._calcKinds(4);
     handStats.cardsPerSuit = this._calcCardsPerSuit;
     handStats.runs = this._calcRuns;
@@ -44,34 +44,75 @@ export class HandRanker {
 
   /*
    *  pairs: [ // hand = [Th, Tc, 3h, 3c, 3s]
-   *    0: { used: [Th, Tc], unused: [3h, 3c, 3s] },
-   *    1: { used: [3h, 3c], unused: [Th, Tc, 3s] },
-   *    2: { used: [3c, 3s], unused: [Th, Tc, 3h] },
-   *    3: { used: [3s, 3h], unused: [Th, Tc, 3c] }
+   *    0: { rank: T, used: [Th, Tc], unused: [3h, 3c, 3s] },
+   *    1: { rank: 3, used: [3h, 3c], unused: [Th, Tc, 3s] },
+   *    2: { rank: 3, used: [3c, 3s], unused: [Th, Tc, 3h] },
+   *    3: { rank: 3, used: [3s, 3h], unused: [Th, Tc, 3c] }
    *  ]
    *
    *  pairs: [ // hand = [Th, Tc, 3h, 3c, 3s]
    *    0: { rank: 'T', used: [Th, Tc], unused: [3h, 3c, 3s] },
    */
   get _calcPairs() {
-    var pairs = []
+    var pairs = [];
     var cards = this._calcCards;
     var card, rank, pair, unused;
 
     for (var cardIndex in cards) {
-      card = cards[cardIndex]
-      rank = card.rank
+      card = cards[cardIndex];
+      rank = card.rank;
 
       for (var i = parseInt(cardIndex) + 1; i < cards.length; i++) {
         if (rank === cards[i].rank) {
           unused = cards.filter(c => c.name !== card.name && c.name !== cards[i].name);
-          pair = { rank: rank, used: [card.name, cards[i].name], unused: unused };
+          pair = { rank: rank, used: [card, cards[i]], unused: unused };
           pairs.push(pair);
         }
       }
     }
 
-    return pairs
+    return pairs;
+  }
+
+  /*
+   *  trips: { // hand = [Th, Tc, 3h, 3c, 3s]
+   *    [3h, 3c, 3s].sorted: { rank: 3, used: [3h, 3c, 3s], unused: [Th, Tc] },
+   *  }
+   */
+  get _calcTrips() {
+    var trips = {};
+    var pairs = this._calcPairs;
+    var unusedCards;
+    var unusedCard;
+    var pair;
+    var unused;
+    var dedupKey;
+
+    for (var pairIndex in pairs) {
+      pair = pairs[pairIndex];
+      unusedCards = pair.unused;
+
+      for (var unusedCardIndex in unusedCards) {
+        unusedCard = unusedCards[unusedCardIndex];
+
+        if (unusedCard.rank === pair.rank) {
+          unused = pair.unused.filter(c => c.name !== unusedCard.name);
+          pair.used.push(unusedCard);
+
+          dedupKey = [pair.used[0].name, pair.used[1].name, pair.used[2].name].sort();
+
+          trips[dedupKey] = {
+            rank: unusedCard.rank,
+            used: pair.used,
+            unused: unused
+          };
+        }
+      }
+    }
+
+    // This still needs to return unique trips. Probably by using the `trips` object key.
+
+    return Object.values(trips);
   }
 
   get _calcHands() {

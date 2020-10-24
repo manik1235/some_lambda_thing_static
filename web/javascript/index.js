@@ -3,7 +3,52 @@ import { HandRanker } from './hand_ranker.js';
 function main() {
   var dealHandsUrl = "https://8x16jr2jii.execute-api.us-east-1.amazonaws.com/dev/some-lambda-thing?action=dealHands&number=5";
 
-  httpGetAsync(dealHandsUrl, dealHands);
+  // httpGetAsync(dealHandsUrl, dealHands);
+  dealHands(mockResponse());
+}
+
+function mockResponse() {
+  var response = { "hands": {
+    "hands": {
+      "0": [
+        "8♦",
+        "9♣",
+        "2♣",
+        "5♣",
+        "3♣"
+      ],
+      "1": [
+        "3♣",
+        "3♥",
+        "K♥",
+        "3♤",
+        "J♣"
+      ],
+      "2": [
+        "2♦",
+        "5♦",
+        "4♥",
+        "K♦",
+        "4♣"
+      ],
+      "3": [
+        "T♦",
+        "T♤",
+        "J♦",
+        "9♤",
+        "5♥"
+      ],
+      "4": [
+        "T♥",
+        "K♣",
+        "3♦",
+        "K♤",
+        "7♥"
+      ]
+    }
+  }}
+
+  return JSON.stringify(response);
 }
 
 function httpGetAsync(theUrl, callback)
