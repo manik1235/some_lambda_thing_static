@@ -11,11 +11,12 @@ export class HandRanker {
     handStats.length = this.hand.length;
     handStats.cardsPerRank = this._calcRanks.cardsPerRank;
     handStats.ranks = this._calcRanks.ranks;
-    handStats.pairs = this._calcPairs; // this._calcKinds(2);
-    handStats.trips = this._calcTrips; //this._calcKinds(3);
+    handStats.pairs = this._calcPairs;
+    handStats.trips = this._calcTrips;
     handStats.quads = this._calcKinds(4);
     handStats.cardsPerSuit = this._calcCardsPerSuit;
     handStats.runs = this._calcRuns;
+    handStats.cards = this._calcCards;
 
     handStats.hands = this._calcHands;
 
@@ -24,19 +25,22 @@ export class HandRanker {
 
   /*
    *  [
-   *    0: { name: '2c', rank: 2, suit: c },
-   *    1: { name: '4d', rank: 4, suit: d },
+   *    0: { name: '2c', rank: 2, suit: c, magnitude: [2] },
+   *    1: { name: '4d', rank: 4, suit: d, magnitude: [4] },
+   *    2: { name: 'Ad', rank: A, suit: d, magnitude: [1, 14] },
+   *    3: { name: 'Kd', rank: K, suit: d, magnitude: [13] },
    *  ]
    */
   get _calcCards() {
     var cards = [];
     var hand = this.hand;
-    var rank, suit;
+    var rank, suit, magnitude;
 
     for (var cardIndex in hand) {
       rank = hand[cardIndex].slice(0, 1);
       suit = hand[cardIndex].slice(1, 2);
-      cards.push({ name: hand[cardIndex], rank: rank, suit: suit });
+      magnitude = this._calcMagnitude(rank);
+      cards.push({ name: hand[cardIndex], rank: rank, suit: suit, magnitude: magnitude });
     }
 
     return cards;
@@ -142,6 +146,9 @@ export class HandRanker {
      *      trips: [ // hand = [Th, Tc, 3h, 3c, 3s]
      *        0: { used: [3h, 3c, 3s], unused: [Th, Tc] }
      *      ]
+     *      straights: [ // hand = [3x, 4x, 6x, 5x, 7x]
+     *        0: { used: [3x, 4x, 6x, 5x, 7x], unused: [] }
+     *      ]
      *    ],
      *
      *    draws: [
@@ -165,6 +172,91 @@ export class HandRanker {
      *
      *
      */
+
+    var hands = {};
+
+    hands.pairs = this._calcPairs;
+    hands.trips = this._calcTrips;
+
+  }
+
+  /*
+   * Should a straight be defined by the number of cards in your hand?
+   * I don't think so, I think it should really just return the runs,
+   * and then you can pick the runs that equal the length of hands if you
+   * want. So for `handstats.hands`, that would just be the ones that are
+   * the length of the hand, but `handstats.runs` would be everything.
+   *
+   *  runs: { // hand = [3x, 4x, 6x, 5x, 7x]
+   *    5: [
+   *         { used: [3x, 4x, 5x, 6x, 7x], unused: [] },
+   *       ],
+   *    4: [
+   *         { used: [3x, 4x, 5x, 6x], unused: [7x] },
+   *         { used: [4x, 5x, 6x, 7x], unused: [3x] },
+   *       ],
+   *    3: [
+   *         { used: [3x, 4x, 5x], unused: [6x, 7x] },
+   *         { used: [4x, 5x, 6x], unused: [3x, 7x] },
+   *         { used: [5x, 6x, 7x], unused: [3x, 4x] },
+   *       ],
+   *    2: [
+   *         { used: [3x, 4x], unused: [5x, 6x, 7x] },
+   *         { used: [4x, 5x], unused: [3x, 6s, 7x] },
+   *         { used: [5x, 6x], unused: [3x, 4x, 7x] },
+   *         { used: [6x, 7x], unused: [3x, 4x, 5x] },
+   *       ],
+   *  }
+   *
+   *          // hand = [Ax, 2x, 3x, Qx, Kx]
+   *  runs: { // hand = [1x, 2x, 3x, 12x, 13x, 14x]
+   *    3: [
+   *         { used: [Ax, 2x, 3x], unused: [Qx, Kx] },
+   *         { used: [Qx, Kx, Ax], unused: [2x, 3x] },
+   *       ],
+   *    2: [
+   *         { used: [Ax, 2x], unused: [3x, Qx, Kx] },
+   *         { used: [2x, 3x], unused: [Ax, Qs, Kx] },
+   *         { used: [Qx, Kx], unused: [Ax, 2x, 3x] },
+   *         { used: [Kx, Ax], unused: [2x, 3x, Qx] },
+   *       ],
+   *  }
+   *
+   *
+   *
+   *
+   */
+  get _calcRuns() {
+    var runs = {};
+    var rankOrdered = Array.from(new Set(this._numericRanks(this._calcRanks.ranks, true)));
+    var deltas = [];
+
+    for (var i = 1; i < rankOrdered.length; i++) {
+      deltas.push(rankOrdered[i] - rankOrdered[i - 1]);
+    }
+
+    var runLength = 1;
+    for (var deltaIndex in deltas) {
+      if (deltas[deltaIndex] === 1) {
+        runLength++;
+        if (deltaIndex == deltas.length - 1) {
+          if (runs[runLength]) {
+            runs[runLength]++
+          } else {
+            runs[runLength] = 1;
+          }
+        }
+      } else {
+        if (runs[runLength]) {
+          runs[runLength]++
+        } else {
+          runs[runLength] = 1;
+        }
+        runLength = 1;
+      }
+    }
+
+    return runs;
   }
 
   get _calcRanks() {
@@ -199,40 +291,8 @@ export class HandRanker {
     return cardsPerSuit;
   }
 
-  get _calcRuns() {
-    var runs = {};
-    var rankOrdered = Array.from(new Set(this._numericRanks(this._calcRanks.ranks)));
-    var deltas = [];
-
-    for (var i = 1; i < rankOrdered.length; i++) {
-      deltas.push(rankOrdered[i] - rankOrdered[i - 1]);
-    }
-
-    var runLength = 1;
-    for (var deltaIndex in deltas) {
-      if (deltas[deltaIndex] === 1) {
-        runLength++;
-        if (deltaIndex == deltas.length - 1) {
-          if (runs[runLength]) {
-            runs[runLength]++
-          } else {
-            runs[runLength] = 1;
-          }
-        }
-      } else {
-        if (runs[runLength]) {
-          runs[runLength]++
-        } else {
-          runs[runLength] = 1;
-        }
-        runLength = 1;
-      }
-    }
-
-    return runs;
-  }
-
-  _numericRanks(ranks) {
+  _calcMagnitude(rank) {
+    // This should probably come from lambda
     var transform = {
       'A': [1, 14]
       ,'K': [13]
@@ -240,29 +300,38 @@ export class HandRanker {
       ,'J': [11]
       ,'T': [10]
     }
-    var numRanks = [];
+
+    var magnitude = transform[rank];
+
+    if (magnitude) {
+      return magnitude;
+    } else {
+      return [parseInt(rank)];
+    }
+  }
+
+  _numericRanks(ranks, sorted = false) {
+    var numericRanks = [];
+    var numericRank;
+    var sortedNumRanks;
 
     for (var rankIndex in ranks) {
-      var numRank = transform[ranks[rankIndex]]
-      if (numRank) {
-        for (var numRankIndex in numRank) {
-          numRanks.push(numRank[numRankIndex]);
-        }
-      } else {
-        numRanks.push(parseInt(ranks[rankIndex]));
+      numericRank = this._calcMagnitude(ranks[rankIndex]);
+
+      for (var numericRankIndex in numericRank) {
+        numericRanks.push(numericRank[numericRankIndex]);
       }
     }
 
-    var sortedNumRanks = numRanks.sort(function(a, b) {
-      if (a < b) {
-        return -1;
-      }
-      if (a > b) {
-        return 1;
-      }
-      return 0;
-    });
-    return numRanks;
+    if (sorted) {
+      sortedNumRanks = numericRanks.sort(function(a, b) {
+        if (a < b) { return -1; }
+        if (a > b) { return 1; }
+        return 0;
+      });
+    }
+
+    return numericRanks;
   }
 
   _calcKinds(count) {
