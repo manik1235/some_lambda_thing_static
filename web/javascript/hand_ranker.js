@@ -87,6 +87,7 @@ export class HandRanker {
     var pair;
     var unused;
     var dedupKey;
+    var trip;
 
     for (var pairIndex in pairs) {
       pair = pairs[pairIndex];
@@ -97,20 +98,23 @@ export class HandRanker {
 
         if (unusedCard.rank === pair.rank) {
           unused = pair.unused.filter(c => c.name !== unusedCard.name);
-          pair.used.push(unusedCard);
+          trip = JSON.parse(JSON.stringify(pair));
+          trip.used.push(unusedCard);
 
-          dedupKey = [pair.used[0].name, pair.used[1].name, pair.used[2].name].sort();
+          dedupKey = []
+          for (var usedIndex in trip.used) {
+            dedupKey.push(trip.used[usedIndex].name);
+          }
+          dedupKey.sort();
 
           trips[dedupKey] = {
             rank: unusedCard.rank,
-            used: pair.used,
+            used: trip.used,
             unused: unused
           };
         }
       }
     }
-
-    // This still needs to return unique trips. Probably by using the `trips` object key.
 
     return Object.values(trips);
   }
