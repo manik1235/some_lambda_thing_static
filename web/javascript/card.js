@@ -20,11 +20,11 @@ export class Card {
   }
 
   get rank() {
-    return this.name.slice(options.rankStart, options.rankEnd);
+    return this.name.slice(this.options.rankStart, this.options.rankEnd);
   }
 
   get suit() {
-    return this.name.slice(options.suitStart, options.suitEnd);
+    return this.name.slice(this.options.suitStart, this.options.suitEnd);
   }
 
   get magnitude() {

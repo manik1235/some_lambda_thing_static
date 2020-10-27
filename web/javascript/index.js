@@ -11,11 +11,11 @@ function mockResponse() {
   var response = { "hands": {
     "hands": {
       "0": [
-        "8♦",
-        "9♣",
-        "2♣",
-        "5♣",
-        "3♣"
+        "T♦",
+        "J♤",
+        "Q♦",
+        "K♤",
+        "A♥"
       ],
       "1": [
         "3♣",
@@ -33,10 +33,10 @@ function mockResponse() {
       ],
       "3": [
         "T♦",
-        "T♤",
-        "J♦",
-        "9♤",
-        "5♥"
+        "J♤",
+        "Q♦",
+        "K♤",
+        "A♥"
       ],
       "4": [
         "A♥",
@@ -80,6 +80,11 @@ function dealHands(response) {
     var handRanker = new HandRanker(hand);
     console.log('Hand Stats');
     console.log(handRanker.stats);
+    if (window.handRankers) {
+      window.handRankers.push(handRanker);
+    } else {
+      window.handRankers = [handRanker];
+    }
     table.append(handElement);
   }
 }

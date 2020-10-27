@@ -1,10 +1,13 @@
+import { Hand } from './hand.js';
+
 export class HandRanker {
   constructor(hand) {
     this.cache = {};
-    this.hand = hand;
+    this.hand = new Hand(hand);
   }
 
   get stats() {
+    return;
     var handStats = {};
 
     handStats.hand = this.hand;
@@ -21,106 +24,6 @@ export class HandRanker {
     handStats.hands = this._calcHands;
 
     return handStats;
-  }
-
-  /*
-   *  [
-   *    0: { name: '2c', rank: 2, suit: c, magnitude: [2] },
-   *    1: { name: '4d', rank: 4, suit: d, magnitude: [4] },
-   *    2: { name: 'Ad', rank: A, suit: d, magnitude: [1, 14] },
-   *    3: { name: 'Kd', rank: K, suit: d, magnitude: [13] },
-   *  ]
-   */
-  get _calcCards() {
-    var cards = [];
-    var hand = this.hand;
-    var rank, suit, magnitude;
-
-    for (var cardIndex in hand) {
-      rank = hand[cardIndex].slice(0, 1);
-      suit = hand[cardIndex].slice(1, 2);
-      magnitude = this._calcMagnitude(rank);
-      cards.push({ name: hand[cardIndex], rank: rank, suit: suit, magnitude: magnitude });
-    }
-
-    return cards;
-  }
-
-  /*
-   *  pairs: [ // hand = [Th, Tc, 3h, 3c, 3s]
-   *    0: { rank: T, used: [Th, Tc], unused: [3h, 3c, 3s] },
-   *    1: { rank: 3, used: [3h, 3c], unused: [Th, Tc, 3s] },
-   *    2: { rank: 3, used: [3c, 3s], unused: [Th, Tc, 3h] },
-   *    3: { rank: 3, used: [3s, 3h], unused: [Th, Tc, 3c] }
-   *  ]
-   *
-   *  pairs: [ // hand = [Th, Tc, 3h, 3c, 3s]
-   *    0: { rank: 'T', used: [Th, Tc], unused: [3h, 3c, 3s] },
-   */
-  get _calcPairs() {
-    var pairs = [];
-    var cards = this._calcCards;
-    var card, rank, pair, unused;
-
-    for (var cardIndex in cards) {
-      card = cards[cardIndex];
-      rank = card.rank;
-
-      for (var i = parseInt(cardIndex) + 1; i < cards.length; i++) {
-        if (rank === cards[i].rank) {
-          unused = cards.filter(c => c.name !== card.name && c.name !== cards[i].name);
-          pair = { rank: rank, used: [card, cards[i]], unused: unused };
-          pairs.push(pair);
-        }
-      }
-    }
-
-    return pairs;
-  }
-
-  /*
-   *  trips: { // hand = [Th, Tc, 3h, 3c, 3s]
-   *    [3h, 3c, 3s].sorted: { rank: 3, used: [3h, 3c, 3s], unused: [Th, Tc] },
-   *  }
-   */
-  get _calcTrips() {
-    var trips = {};
-    var pairs = this._calcPairs;
-    var unusedCards;
-    var unusedCard;
-    var pair;
-    var unused;
-    var dedupKey;
-    var trip;
-
-    for (var pairIndex in pairs) {
-      pair = pairs[pairIndex];
-      unusedCards = pair.unused;
-
-      for (var unusedCardIndex in unusedCards) {
-        unusedCard = unusedCards[unusedCardIndex];
-
-        if (unusedCard.rank === pair.rank) {
-          unused = pair.unused.filter(c => c.name !== unusedCard.name);
-          trip = JSON.parse(JSON.stringify(pair));
-          trip.used.push(unusedCard);
-
-          dedupKey = []
-          for (var usedIndex in trip.used) {
-            dedupKey.push(trip.used[usedIndex].name);
-          }
-          dedupKey.sort();
-
-          trips[dedupKey] = {
-            rank: unusedCard.rank,
-            used: trip.used,
-            unused: unused
-          };
-        }
-      }
-    }
-
-    return Object.values(trips);
   }
 
   get _calcHands() {
@@ -289,25 +192,6 @@ export class HandRanker {
     }
 
     return cardsPerSuit;
-  }
-
-  _calcMagnitude(rank) {
-    // This should probably come from lambda
-    var transform = {
-      'A': [1, 14]
-      ,'K': [13]
-      ,'Q': [12]
-      ,'J': [11]
-      ,'T': [10]
-    }
-
-    var magnitude = transform[rank];
-
-    if (magnitude) {
-      return magnitude;
-    } else {
-      return [parseInt(rank)];
-    }
   }
 
   _numericRanks(ranks, sorted = false) {
