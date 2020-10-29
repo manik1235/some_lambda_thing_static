@@ -260,9 +260,10 @@ export class Hand {
             //unused = magnitudes.filter(m => m
 
             if (runs[runLength]) {
-              runs[runLength].push({ used: this.dup(run), unused: this.dup(unused) });
+              // hand._calcRun[3][0].used[hand._calcRun[3][0].used.length - 1][0].magnitude
+              runs[runLength].push({ used: this.dup(run), unused: this.dup(unused), magnitude: magnitudes[startDeltaIndex + 1] });
             } else {
-              runs[runLength] = [{ used: this.dup(run), unused: this.dup(unused) }];
+              runs[runLength] = [{ used: this.dup(run), unused: this.dup(unused), magnitude: magnitudes[startDeltaIndex + 1] }];
             }
           } else {
             break;
