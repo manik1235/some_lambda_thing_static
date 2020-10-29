@@ -3,7 +3,6 @@ import { Card } from './card.js';
 export class Hand {
   constructor(hand) {
     this.hand = hand;
-    this.hand.str = this.straight;
   }
 
   get length() {
@@ -237,7 +236,6 @@ export class Hand {
    */
   get _calcRun() {
     var runs = {};
-    //var rankOrdered = Array.from(new Set(this._numericRanks(this._calcRanks.ranks, true)));
     var cardsByMagnitude = this.cardsByMagnitude;
     var magnitudes = Object.keys(cardsByMagnitude).map(c => parseInt(c)).sort((a, b) => a - b);
 
@@ -248,25 +246,31 @@ export class Hand {
       deltas.push(magnitudes[i] - magnitudes[i - 1]);
     }
 
-    var run = [magnitudes[0]];
-    var unused = [];
-    var runLength = 1;
     for (var deltaIndex = 0; deltaIndex < deltas.length; deltaIndex++) {
+      var unused = [];
+      var runLength = 1;
+      var run = [magnitudes[deltaIndex]];
       if (deltas[deltaIndex] === 1) {
-        runLength++;
-        run.push(magnitudes[deltaIndex + 1]);
+        for (var startDeltaIndex = deltaIndex; startDeltaIndex < deltas.length; startDeltaIndex++) {
+          if (deltas[startDeltaIndex] === 1) {
+            runLength++;
+            run.push(magnitudes[startDeltaIndex + 1]);
 
-        // filter out the cards that aren't used
-        //unused = magnitudes.filter(m => m
+            // filter out the cards that aren't used
+            //unused = magnitudes.filter(m => m
 
-        if (runs[runLength]) {
-          runs[runLength].push({ used: this.dup(run), unused: this.dup(unused) });
-        } else {
-          runs[runLength] = [{ used: this.dup(run), unused: this.dup(unused) }];
+            if (runs[runLength]) {
+              runs[runLength].push({ used: this.dup(run), unused: this.dup(unused) });
+            } else {
+              runs[runLength] = [{ used: this.dup(run), unused: this.dup(unused) }];
+            }
+          } else {
+            break;
+          }
         }
       } else {
-        runLength = 1;
-        run = [magnitudes[deltaIndex + 1]];
+        // runLength = 1;
+        // run = [magnitudes[startDeltaIndex + 1]];
       }
     }
 
