@@ -178,7 +178,7 @@ export class Hand {
    *  },
    *
    */
-  get straight() {
+  get straights() {
     return this._calcRuns[this.length];
   }
 
@@ -233,6 +233,12 @@ export class Hand {
    *  }
    *
    *
+   *    4: [
+   *         { used: [3x, 4x, 5x, 6x], unused: [7x], magnitude: 3 },
+   *         { used: [4x, 5x, 6x, 7x], unused: [3x], magnitude: 4 },
+   *       ],
+   *
+   *
    *
    */
   get _calcRuns() {
@@ -262,9 +268,9 @@ export class Hand {
 
             if (runs[runLength]) {
               // hand._calcRun[3][0].used[hand._calcRun[3][0].used.length - 1][0].magnitude
-              runs[runLength].push({ used: this.dup(run), unused: this.dup(unused), magnitude: magnitudes[startDeltaIndex + 1] });
+              runs[runLength].push({ used: dup(run), unused: dup(unused), magnitude: magnitudes[startDeltaIndex + 1] });
             } else {
-              runs[runLength] = [{ used: this.dup(run), unused: this.dup(unused), magnitude: magnitudes[startDeltaIndex + 1] }];
+              runs[runLength] = [{ used: dup(run), unused: dup(unused), magnitude: magnitudes[startDeltaIndex + 1] }];
             }
           } else {
             break;
@@ -288,12 +294,78 @@ export class Hand {
 
     return runs;
   }
+
   /*
-   *    4: [
-   *         { used: [3x, 4x, 5x, 6x], unused: [7x], magnitude: 3 },
-   *         { used: [4x, 5x, 6x, 7x], unused: [3x], magnitude: 4 },
+   *  // hand = [xs, xs, xs, xh, xh]
+   *  // hand = [2s, 3s, 4s, 3h, 8h]
+   *  straightFlushes: {
+   *    3: [
+   *         { used: [2s, 3s, 4s], unused: [3h, 8h], magnitude: 4 },
    *       ],
+   *    2: [
+   *         { used: [2s, 3s], unused: [4s, 3h, 8h], magnitude: 3 },
+   *         { used: [3s, 4s], unused: [2s, 3h, 8h], magnitude: 4 },
+   *       ],
+   *  }
+   *
+   *  // hand = [xs, xs, xs, xh, xh]
+   *  // hand = [2s, 3s, 4s, 7s, 8s]
+   *  straightFlushes: {
+   *    5: [
+   *         { used: [2s, 3s, 4s, 7s, 8s], unused: [], magnitude: 8 },
+   *       ],
+   *    4: [
+   *         { used: [3s, 4s, 7s, 8s], unused: [2s], magnitude: 8 },
+   *         { used: [2s, 4s, 7s, 8s], unused: [3s], magnitude: 8 },
+   *         { used: [2s, 3s, 7s, 8s], unused: [4s], magnitude: 8 },
+   *         { used: [2s, 3s, 4s, 8s], unused: [7s], magnitude: 8 },
+   *         { used: [2s, 3s, 4s, 7s], unused: [8s], magnitude: 7 },
+   *       ],
+   *    3: [
+   *         { used: [2s, 3s, 4s], unused: [7s, 8s], magnitude: 4 },
+   *         { used: [2s, 3s, 7s], unused: [4s, 7s], magnitude: 7 },
+   *         { used: [2s, 3s, 8s], unused: [4s, 7s], magnitude: 8 },
+   *         { used: [3s, 4s, 7s], unused: [2s, 8s], magnitude: 7 },
+   *         { used: [3s, 4s, 8s], unused: [2s, 7s], magnitude: 8 },
+   *         { used: [4s, 7s, 8s], unused: [2s, 3s], magnitude: 8 },
+   *       ],
+   *    2: [
+   *         { used: [2s, 3s], unused: [4s, 7s, 8s], magnitude: 3 },
+   *         { used: [2s, 4s], unused: [3s, 7s, 8s], magnitude: 4 },
+   *         { used: [2s, 7s], unused: [3s, 4s, 8s], magnitude: 7 },
+   *         { used: [2s, 8s], unused: [3s, 4s, 7s], magnitude: 8 },
+   *         { used: [3s, 4s], unused: [2s, 7s, 8s], magnitude: 4 },
+   *         { used: [3s, 7s], unused: [2s, 4s, 8s], magnitude: 7 },
+   *         { used: [3s, 8s], unused: [2s, 4s, 7s], magnitude: 8 },
+   *         { used: [4s, 7s], unused: [2s, 3s, 8s], magnitude: 7 },
+   *         { used: [4s, 8s], unused: [2s, 3s, 7s], magnitude: 8 },
+   *         { used: [7s, 8s], unused: [2s, 3s, 4s], magnitude: 8 },
+   *       ],
+   *  }
    */
+  get straightFlushes() {
+    var straightFlushes = {};
+    var cards = this.cards;
+    var flush;
+
+    for (var cardIndex = 0; cardIndex < cards.length; cardIndex++) {
+      var card = cards[cardIndex];
+      var flush = [card];
+      for (var nextCardIndex = cardIndex + 1; nextCardIndex < cards.length; nextCardIndex++) {
+        var nextCard = cards[nextCardIndex];
+        if (card.suit === nextCard.suit) {
+          flush.push(nextCard);
+          if (straightFlushes[flush.length]) {
+            straightFlushes[flush.length].push(dup(flush));
+          } else {
+            straightFlushes[flush.length] = [dup(flush)];
+          }
+        }
+      }
+    }
+
+    return straightFlushes;
+  }
 
 
 
