@@ -1,4 +1,5 @@
 import { Card } from './card.js';
+import { dup } from './utilities.js';
 
 export class Hand {
   constructor(hand) {
@@ -293,10 +294,6 @@ export class Hand {
    *         { used: [4x, 5x, 6x, 7x], unused: [3x], magnitude: 4 },
    *       ],
    */
-
-  dup(object) {
-    return JSON.parse(JSON.stringify(object));
-  }
 
 
 
