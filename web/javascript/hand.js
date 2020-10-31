@@ -178,7 +178,7 @@ export class Hand {
    *
    */
   get straight() {
-    return this._calcRun[this.length];
+    return this._calcRuns[this.length];
   }
 
   /*
@@ -234,7 +234,7 @@ export class Hand {
    *
    *
    */
-  get _calcRun() {
+  get _calcRuns() {
     var runs = {};
     var cardsByMagnitude = this.cardsByMagnitude;
     var magnitudes = Object.keys(cardsByMagnitude).map(c => parseInt(c)).sort((a, b) => a - b);
