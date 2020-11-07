@@ -1,4 +1,4 @@
-import { HandRanker } from './hand_ranker.js';
+import { HandRanker } from '../backend/hand_ranker.js';
 
 function main() {
   var dealHandsUrl = "https://8x16jr2jii.execute-api.us-east-1.amazonaws.com/dev/some-lambda-thing?action=dealHands&number=5";

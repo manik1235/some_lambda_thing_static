@@ -1,5 +1,5 @@
 import { Card } from './card.js';
-import { dup } from './utilities.js';
+import { dup } from '../utilities/utilities.js';
 
 export class Hand {
   constructor(hand) {
