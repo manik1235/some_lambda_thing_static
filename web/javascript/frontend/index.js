@@ -4,7 +4,7 @@ import { getHands } from './hands.js';
 
 class ViewHands {
   deal() {
-    // _dealHands(getHands()); // Get hands from Lambda
+    // this._dealHands(getHands()); // Get hands from Lambda
     this._dealHands(mockGetHands()); // Get hands from the hand mocks utility
   }
 
@@ -31,6 +31,12 @@ class ViewHands {
         window.handRankers = [handRanker];
       }
       table.append(handElement);
+
+      // Draw first card image
+      var cardCanvasElement = this._createElement('div', 'id', 'hand_' + handIndex + 'card_0');
+      var card = handRanker.cards[0];
+      card.draw(cardCanvasElement);
+      table.append(cardCanvasElement);
     }
   }
 

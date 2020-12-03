@@ -4,6 +4,7 @@ export class HandRanker {
   constructor(hand) {
     this.cache = {};
     this.hand = new Hand(hand);
+    this.cards = this.hand.cards;
   }
 
   get stats() {

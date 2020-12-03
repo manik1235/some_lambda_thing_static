@@ -39,6 +39,14 @@ export class Card {
     return magnitude;
   }
 
+  draw(destinationElement) {
+    var cardFacePath = 'https://some-lambda-thing.s3.amazonaws.com/images/card_face.png';
+
+    var cardImage = new Image();
+    cardImage.src = cardFacePath;
+    destinationElement.appendChild(cardImage)
+  }
+
   get _transforms() {
     // This should probably come from lambda
     var transform = {
